@@ -1,3 +1,6 @@
+/*26. Задані два рядки. Скласти третій рядок з усіх двосимвольних послідовностей
+першого рядка, які зустрічаються у другому рядку.*/
+
 import java.util.LinkedHashSet;
 import java.util.Scanner;
 import java.util.Set;
