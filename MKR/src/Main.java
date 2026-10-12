@@ -3,6 +3,7 @@ import java.util.List;
 import java.util.Scanner;
 
 // ===================== 2. Enum =====================
+// Перелік типів відпочинку; кожна константа має текстовий опис
 enum TravelType {
     BEACH("пляжний відпочинок"),
     SKI("гірськолижний"),
@@ -23,6 +24,7 @@ enum TravelType {
 }
 
 // ===================== 1. Базовий клас Tour =====================
+// Тур: назва, тривалість (днів), країна, тип відпочинку, ціна та знижка
 class Tour {
     private String name;
     private int size;
@@ -31,6 +33,7 @@ class Tour {
     private double price;
     private double discount;
 
+    // ===== Конструктори =====
     public Tour() {
         this("Без назви", 1, "Невідомо", TravelType.OTHER, 0.0);
     }
@@ -66,6 +69,7 @@ class Tour {
         this.discount = discount;
     }
 
+    // Підсумкова ціна з урахуванням знижки, округлена до копійок
     public double getPrice() {
         return Math.round(price * (100 - discount)) / 100.0;
     }
@@ -80,6 +84,7 @@ class Tour {
     public String getCountry()   { return country; }
     public TravelType getType()  { return type; }
 
+    // ===== Сетери з перевіркою коректності даних =====
     public void setName(String name) {
         if (name == null || name.isBlank()) {
             throw new IllegalArgumentException("Назва не може бути порожньою");
@@ -105,6 +110,7 @@ class Tour {
         this.type = (type == null) ? TravelType.OTHER : type;
     }
 
+    // Рядок з ціною (і знижкою, якщо вона є) з заданим відступом
     public String getPriceInfo(String indent) {
         if (discount > 0) {
             return indent + "Ціна: " + price + " грн (знижка " + discount + "%)\n"
@@ -128,6 +134,7 @@ class Tour {
 }
 
 // ===================== 3. Успадкування =====================
+// Базовий клас для людей: ім'я, телефон, email
 class Person {
     private String name;
     private String phone;
@@ -154,6 +161,7 @@ class Person {
     }
 }
 
+// Клієнт агентства — нащадок Person зі списком заброньованих турів
 class Client extends Person {
     private List<Tour> bookedTours = new ArrayList<>();
 
@@ -161,6 +169,7 @@ class Client extends Person {
         super(name, phone, email);
     }
 
+    // Повертає false, якщо тур уже заброньовано цим клієнтом
     public boolean bookTour(Tour tour) {
         if (bookedTours.contains(tour)) {
             return false;
@@ -177,6 +186,7 @@ class Client extends Person {
         return bookedTours;
     }
 
+    // Загальна вартість усіх бронювань клієнта
     public double getTotalCost() {
         double sum = 0;
         for (Tour t : bookedTours) {
@@ -185,6 +195,7 @@ class Client extends Person {
         return sum;
     }
 
+    // Перевизначення: додатково виводить заброньовані тури
     @Override
     public void displayInfo() {
         System.out.println("Клієнт: " + getName());
@@ -209,6 +220,7 @@ public class Main {
     private static final List<Tour> tours = new ArrayList<>();
     private static final List<Client> clients = new ArrayList<>();
 
+    // Головний цикл: виводимо меню і виконуємо обрану дію
     public static void main(String[] args) {
         loadDemoData();
 
