@@ -7,7 +7,14 @@ import io.github.kotr228.platform.core.model.PhoneNumber;
 import java.time.LocalDate;
 import java.time.Period;
 
-/** Клієнт страхової компанії, якого обслуговує певний агент. */
+/**
+ * Клієнт страхової компанії, якого обслуговує певний агент.
+ * <p>
+ * Вік залежить від поточної дати, тому обмеження віку перевіряє
+ * {@link io.github.kotr228.insurance.service.InsuranceCompany} під час
+ * оформлення чи зміни дати народження, а не сам клієнт: інакше збережений
+ * колись клієнт міг би «стати недійсним» і зламати завантаження даних.
+ */
 public final class Client extends Person {
     /** Договір страхування укладається лише з повнолітніми. */
     public static final int MIN_AGE = 18;
@@ -35,16 +42,18 @@ public final class Client extends Person {
         if (birthDate == null) {
             throw new InvalidDataException("Дата народження має бути задана");
         }
-        int age = Period.between(birthDate, LocalDate.now()).getYears();
-        if (age < MIN_AGE || age > MAX_AGE) {
-            throw new InvalidDataException("Вік клієнта має бути від "
-                    + MIN_AGE + " до " + MAX_AGE + " років");
-        }
         this.birthDate = birthDate;
     }
 
-    public int getAge() {
-        return Period.between(birthDate, LocalDate.now()).getYears();
+    /** Кількість повних років на вказану дату. */
+    public int getAgeOn(LocalDate date) {
+        return Period.between(birthDate, date).getYears();
+    }
+
+    /** Чи може особа з такою датою народження укласти договір на вказану дату. */
+    public static boolean isEligibleAge(LocalDate birthDate, LocalDate date) {
+        int age = Period.between(birthDate, date).getYears();
+        return !birthDate.isAfter(date) && age >= MIN_AGE && age <= MAX_AGE;
     }
 
     public Agent getAgent() {
@@ -65,6 +74,7 @@ public final class Client extends Person {
 
     @Override
     public String getInfo() {
-        return super.getInfo() + "\n  Вік: " + getAge() + " р., агент: " + agent;
+        return super.getInfo() + "\n  Дата народження: " + birthDate
+                + ", агент: " + agent;
     }
 }

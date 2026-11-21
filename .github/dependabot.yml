@@ -1,0 +1,15 @@
+# Щотижневі PR з оновленнями залежностей, плагінів Maven і дій GitHub Actions
+version: 2
+updates:
+  - package-ecosystem: maven
+    directory: /KR
+    schedule:
+      interval: weekly
+    groups:
+      maven-plugins:
+        patterns: ["org.apache.maven.plugins:*", "org.codehaus.mojo:*", "org.jacoco:*"]
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly

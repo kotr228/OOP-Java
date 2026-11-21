@@ -17,4 +17,8 @@
         ПІБ і телефон, реєстр об'єктів, CSV, інтерфейс сховища даних.
         Залежить лише від стандартної бібліотеки Java.
     </description>
+
+    <properties>
+        <coverage.minimum>0.80</coverage.minimum>
+    </properties>
 </project>

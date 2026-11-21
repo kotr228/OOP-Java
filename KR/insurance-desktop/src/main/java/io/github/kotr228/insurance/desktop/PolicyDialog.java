@@ -78,7 +78,7 @@ public final class PolicyDialog extends EntityDialog {
             eventField.setText(policy.getInsuredEvent());
             costField.setText(Formats.moneyForInput(policy.getCost()));
         } else {
-            LocalDate today = LocalDate.now();
+            LocalDate today = company.today();
             startField.setText(Formats.date(today));
             endField.setText(Formats.date(today.plusYears(1).minusDays(1)));
         }

@@ -17,7 +17,10 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
+import java.time.Clock;
+import java.time.Duration;
 import java.time.LocalDate;
+import java.time.ZoneOffset;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertAll;
@@ -28,11 +31,16 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class InsuranceCompanyTest {
+    /** «Сьогодні» для всіх тестів: результати не залежать від дати запуску. */
+    static final LocalDate TODAY = LocalDate.of(2026, 11, 21);
+    static final Clock CLOCK = Clock.fixed(
+            TODAY.atStartOfDay().toInstant(ZoneOffset.UTC), ZoneOffset.UTC);
+
     private InsuranceCompany company;
 
     @BeforeEach
     void setUp() {
-        company = DemoData.create();
+        company = DemoData.create(CLOCK);
     }
 
     private Agent agent(String lastName) {
@@ -110,7 +118,7 @@ class InsuranceCompanyTest {
                     () -> assertThrows(InvalidDataException.class,
                             () -> company.createClient(FullName.parse("Мала Олена"),
                                     new PhoneNumber("+380500000001"),
-                                    LocalDate.now().minusYears(17), kovalenko.getId())),
+                                    TODAY.minusYears(17), kovalenko.getId())),
                     () -> assertThrows(InvalidDataException.class,
                             () -> p.setCost(Money.ZERO)),
                     () -> assertThrows(InvalidDataException.class,
@@ -122,6 +130,58 @@ class InsuranceCompanyTest {
                     () -> assertThrows(InvalidDataException.class,
                             () -> Agent.calculateCommission(Money.of(1000),
                                     new BigDecimal("0.9"))));
+        }
+
+        @Test
+        void ageIsCheckedOnCompanyDate() {
+            int agent = agent("Коваленко").getId();
+            assertAll(
+                    () -> assertEquals(TODAY, company.today()),
+                    () -> assertEquals(18, company.createClient(
+                            FullName.parse("Рівно Вісімнадцять"),
+                            new PhoneNumber("+380500000011"),
+                            TODAY.minusYears(18), agent).getAgeOn(TODAY)),
+                    () -> assertThrows(InvalidDataException.class,
+                            () -> company.createClient(FullName.parse("Завтра Вісімнадцять"),
+                                    new PhoneNumber("+380500000012"),
+                                    TODAY.minusYears(18).plusDays(1), agent)),
+                    () -> assertThrows(InvalidDataException.class,
+                            () -> company.createClient(FullName.parse("Ще Ненароджений"),
+                                    new PhoneNumber("+380500000013"),
+                                    TODAY.plusDays(1), agent)),
+                    () -> assertThrows(InvalidDataException.class,
+                            () -> company.createClient(FullName.parse("Дуже Старий"),
+                                    new PhoneNumber("+380500000014"),
+                                    TODAY.minusYears(101), agent)));
+        }
+
+        @Test
+        void clientWhoAgedPastLimitStaysEditable() {
+            // клієнта оформили у 99 років, відтоді минуло 3 роки
+            InsuranceCompany past = new InsuranceCompany("Минуле", Clock.offset(
+                    CLOCK, Duration.ofDays(-3 * 366)));
+            Agent agent = past.createAgent(FullName.parse("Давній Агент"),
+                    new PhoneNumber("+380500000021"), 5);
+            Client old = past.createClient(FullName.parse("Довго Живий"),
+                    new PhoneNumber("+380500000022"), TODAY.minusYears(102),
+                    agent.getId());
+
+            InsuranceCompany now = new InsuranceCompany("Тепер", CLOCK);
+            Agent sameAgent = new Agent(agent.getId(), agent.getFullName(),
+                    agent.getPhone(), agent.getExperienceYears());
+            now.addAgent(sameAgent);
+            now.addClient(new Client(old.getId(), old.getFullName(), old.getPhone(),
+                    old.getBirthDate(), sameAgent));      // як під час завантаження
+
+            Client loaded = now.findClient(old.getId()).orElseThrow();
+            now.updateClient(loaded.getId(), loaded.getFullName(),
+                    new PhoneNumber("+380500000023"), loaded.getBirthDate(),
+                    sameAgent.getId());                   // дата не змінюється
+            assertEquals("+380500000023", loaded.getPhone().getNumber());
+            assertEquals(102, loaded.getAgeOn(now.today()));
+            assertThrows(InvalidDataException.class, () -> now.updateClient(
+                    loaded.getId(), loaded.getFullName(), loaded.getPhone(),
+                    TODAY.minusYears(101), sameAgent.getId()));
         }
 
         @Test

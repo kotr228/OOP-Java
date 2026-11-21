@@ -10,27 +10,75 @@ on:
     paths:
       - "KR/**"
       - ".github/workflows/kr-build.yml"
+  workflow_dispatch:
+
+concurrency:
+  group: kr-build-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    name: build (${{ matrix.os }})
+    strategy:
+      fail-fast: false
+      matrix:
+        # програма настільна — перевіряємо і Linux, і Windows
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
     defaults:
       run:
         working-directory: KR
+        shell: bash
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
-      - uses: actions/setup-java@v4
+      - uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: "21"
           cache: maven
           cache-dependency-path: KR/**/pom.xml
 
-      - name: Збірка, тести, jar
-        run: ./mvnw -B --no-transfer-progress verify
+      - name: Збірка, тести, покриття, jar
+        env:
+          MVNW_VERBOSE: "true"
+        run: |
+          set -o pipefail
+          ./mvnw -B --no-transfer-progress verify 2>&1 | tee build.log
+
+      # Анотації видно на сторінці запуску навіть без входу в GitHub,
+      # тож причину падіння можна з'ясувати, не відкриваючи весь журнал.
+      - name: Причина падіння
+        if: failure()
+        run: |
+          [ -f build.log ] || exit 0
+          grep -E '^\[ERROR\]|^Error|mvnw|cannot|Failed|FAILURE' build.log \
+            | grep -v '^\[ERROR\] *$' | head -n 40 \
+            | while IFS= read -r line; do echo "::error title=KR build::${line}"; done
+          echo "--- останні рядки журналу ---"
+          tail -n 60 build.log
+
+      - name: Звіти тестів
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-reports-${{ matrix.os }}
+          path: KR/**/target/surefire-reports/
+          if-no-files-found: ignore
+
+      - name: Звіт покриття
+        if: success() && matrix.os == 'ubuntu-latest'
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage
+          path: KR/*/target/site/jacoco/
 
       - name: Готова програма
+        if: success() && matrix.os == 'ubuntu-latest'
         uses: actions/upload-artifact@v4
         with:
           name: insurance-app

@@ -71,7 +71,7 @@ public final class MainFrame extends JFrame {
             new Column<>("ПІБ", String.class, c -> c.getFullName().toString()),
             new Column<>("Телефон", String.class, c -> c.getPhone().getFormatted()),
             new Column<>("Дата народження", LocalDate.class, Client::getBirthDate),
-            new Column<>("Вік", Integer.class, Client::getAge),
+            new Column<>("Вік", Integer.class, c -> c.getAgeOn(company.today())),
             new Column<>("Агент", String.class, c -> c.getAgent().toString())));
     private final EntityTableModel<Policy> policyModel = new EntityTableModel<>(List.of(
             new Column<>("Номер", String.class, Policy::getPolicyNumber),
@@ -82,7 +82,7 @@ public final class MainFrame extends JFrame {
             new Column<>("Страховий випадок", String.class, Policy::getInsuredEvent),
             new Column<>("Вартість, грн", BigDecimal.class, Policy::getCost),
             new Column<>("Статус", PolicyStatus.class,
-                    p -> p.getStatusOn(LocalDate.now()))));
+                    p -> p.getStatusOn(company.today()))));
 
     private final EntityTablePanel<Agent> agentPanel;
     private final EntityTablePanel<Client> clientPanel;

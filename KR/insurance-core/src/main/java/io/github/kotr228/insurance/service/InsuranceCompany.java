@@ -14,6 +14,7 @@ import io.github.kotr228.platform.core.model.PhoneNumber;
 import io.github.kotr228.platform.core.repository.Registry;
 
 import java.math.BigDecimal;
+import java.time.Clock;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -21,29 +22,49 @@ import java.util.EnumMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 
 /**
  * Страхова компанія: зберігає агентів, клієнтів і поліси, стежить
  * за бізнес-правилами (цілісність зв'язків, унікальність телефону)
  * і виконує запити. Інтерфейс програми змінює дані лише через цей клас.
+ * <p>
+ * «Сьогодні» компанія бере з {@link Clock}: у програмі це системний
+ * годинник, у тестах — фіксована дата, тож результати не залежать від того,
+ * коли їх запущено.
  */
 public class InsuranceCompany {
     private final String name;
+    private final Clock clock;
     private final Registry<Agent> agents = new Registry<>();
     private final Registry<Client> clients = new Registry<>();
     private final Registry<Policy> policies = new Registry<>();
 
     public InsuranceCompany(String name) {
+        this(name, Clock.systemDefaultZone());
+    }
+
+    public InsuranceCompany(String name, Clock clock) {
         if (name == null || name.isBlank()) {
             throw new InvalidDataException(
                     "Назва компанії не може бути порожньою");
         }
         this.name = name.trim();
+        this.clock = Objects.requireNonNull(clock, "clock");
     }
 
     public String getName() {
         return name;
+    }
+
+    public Clock getClock() {
+        return clock;
+    }
+
+    /** Поточна дата за годинником компанії. */
+    public LocalDate today() {
+        return LocalDate.now(clock);
     }
 
     // ---------- Створення нових об'єктів (id видає компанія) ----------
@@ -61,6 +82,7 @@ public class InsuranceCompany {
         Agent agent = require(agents, agentId, "Агента");
         Client client = new Client(clients.nextId(), fullName, phone,
                 birthDate, agent);
+        checkAge(birthDate);
         addClient(client);
         return client;
     }
@@ -149,6 +171,9 @@ public class InsuranceCompany {
         Client client = require(clients, id, "Клієнта");
         Agent agent = require(agents, agentId, "Агента");
         new Client(id, fullName, phone, birthDate, agent);  // перевірка значень
+        if (!birthDate.equals(client.getBirthDate())) {
+            checkAge(birthDate);      // вік перевіряємо, лише якщо дату змінено
+        }
         checkPhoneIsFree(phone, client);
         client.setFullName(fullName);
         client.setPhone(phone);
@@ -176,6 +201,14 @@ public class InsuranceCompany {
                                                       String what) {
         return registry.findById(id).orElseThrow(() -> new InvalidDataException(
                 what + " з id " + id + " немає в компанії"));
+    }
+
+    /** Договір укладається з особою віком від MIN_AGE до MAX_AGE років. */
+    private void checkAge(LocalDate birthDate) {
+        if (!Client.isEligibleAge(birthDate, today())) {
+            throw new InvalidDataException("Вік клієнта має бути від "
+                    + Client.MIN_AGE + " до " + Client.MAX_AGE + " років");
+        }
     }
 
     /** Номер телефону не може належати іншій особі компанії. */

@@ -9,6 +9,7 @@ import io.github.kotr228.platform.core.model.FullName;
 import io.github.kotr228.platform.core.model.Money;
 import io.github.kotr228.platform.core.model.PhoneNumber;
 
+import java.time.Clock;
 import java.time.LocalDate;
 
 /** Початкові (демонстраційні) дані: 3 агенти, 4 клієнти, 6 полісів. */
@@ -20,7 +21,12 @@ public final class DemoData {
 
     /** Нова компанія з демонстраційними даними. */
     public static InsuranceCompany create() {
-        InsuranceCompany company = new InsuranceCompany(COMPANY_NAME);
+        return create(Clock.systemDefaultZone());
+    }
+
+    /** Те саме, але з заданим годинником (для тестів). */
+    public static InsuranceCompany create(Clock clock) {
+        InsuranceCompany company = new InsuranceCompany(COMPANY_NAME, clock);
         fill(company);
         return company;
     }
