@@ -1,0 +1,13 @@
+# Скрипт для Linux/macOS має бути з LF, інакше CI не зможе його запустити
+mvnw text eol=lf
+*.sh text eol=lf
+*.cmd text eol=crlf
+*.java text eol=lf
+*.xml text eol=lf
+*.md text eol=lf
+
+*.jar binary
+*.mp4 binary
+*.doc binary
+*.docx binary
+*.pdf binary

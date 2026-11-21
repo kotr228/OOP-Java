@@ -1,30 +1,29 @@
-### IntelliJ IDEA ###
+# --- Збірка ---
+target/
 out/
-!**/src/main/**/out/
-!**/src/test/**/out/
+*.class
+
+# --- IDE (налаштування генеруються з pom.xml) ---
+.idea/
+*.iml
+.vscode/
+.classpath
+.project
+.settings/
+.factorypath
+bin/
 .kotlin
 
-### Eclipse ###
-.apt_generated
-.classpath
-.factorypath
-.project
-.settings
-.springBeans
-.sts4-cache
-bin/
-!**/src/main/**/bin/
-!**/src/test/**/bin/
+# --- Залишки старої структури (до переходу на Maven) ---
+/src/
 
-### NetBeans ###
-/nbproject/private/
-/nbbuild/
-/dist/
-/nbdist/
-/.nb-gradle/
+# --- Дані й журнали програми, якщо каталог даних указано всередині проєкту ---
+data/
+logs/
+*.log
 
-### VS Code ###
-.vscode/
-
-### Mac OS ###
+# --- Тимчасові файли ---
+*.tmp
+~$*
 .DS_Store
+Thumbs.db
