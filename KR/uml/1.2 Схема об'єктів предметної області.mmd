@@ -1,0 +1,30 @@
+classDiagram
+    direction TB
+    class Osoba["Особа"] {
+        <<abstract>>
+        Id
+        ПІБ
+        Телефон
+    }
+    class Agent["Агент"] {
+        Стаж роботи
+        Комісійна ставка
+    }
+    class Klient["Клієнт"] {
+        Дата народження
+        Агент
+    }
+    class Polis["Поліс"] {
+        Id
+        Номер поліса
+        Тип страхування
+        Дата початку
+        Дата завершення
+        Страховий випадок
+        Вартість
+        Клієнт
+    }
+    Osoba <|-- Agent
+    Osoba <|-- Klient
+    Agent "1" -- "*" Klient : обслуговує
+    Klient "1" -- "*" Polis : укладає

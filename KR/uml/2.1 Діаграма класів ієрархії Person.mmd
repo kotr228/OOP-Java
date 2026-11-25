@@ -1,0 +1,51 @@
+classDiagram
+    direction TB
+    class FullName {
+        -String lastName
+        -String firstName
+        -String middleName
+        +parse(String text)$ FullName
+        +getShortForm() String
+        +compareTo(FullName other) int
+    }
+    class PhoneNumber {
+        -String PATTERN$
+        -String number
+        +getNumber() String
+        +getFormatted() String
+    }
+    class Person {
+        <<abstract>>
+        -int id
+        -FullName fullName
+        -PhoneNumber phone
+        #Person(id, fullName, phone)
+        +getRole()* String
+        +getInfo() String
+        +compareTo(Person other) int
+    }
+    class Agent {
+        -int nextId$
+        -double commissionRate$
+        -int experienceYears
+        +Agent(name, phone, years)
+        +setCommissionRate(double rate)$ void
+        +calculateCommission(double cost) double
+        +getRole() String
+        +toCsv() String
+    }
+    class Client {
+        -int nextId$
+        +int MIN_AGE = 18$
+        -LocalDate birthDate
+        -Agent agent
+        +Client(name, phone, birth, agent)
+        +getAge() int
+        +getRole() String
+        +toCsv() String
+    }
+    Person *-- "1" FullName
+    Person *-- "1" PhoneNumber
+    Person <|-- Agent
+    Person <|-- Client
+    Client "*" --> "1" Agent : обслуговує

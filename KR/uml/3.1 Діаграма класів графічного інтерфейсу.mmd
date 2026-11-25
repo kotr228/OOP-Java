@@ -1,0 +1,64 @@
+classDiagram
+    direction TB
+    class MainFrame {
+        -InsuranceCompany company
+        -Path dataDir
+        -boolean modified
+        -EntityTableModel agentModel, clientModel, policyModel
+        -JTabbedPane tabs
+        -QueryPanel queryPanel
+        +applyUiFont()$ void
+        -createMenu() JMenuBar
+        -createTab(table, onDoubleClick, buttons) JPanel
+        -refreshAll() void
+        -add/edit/delete Agent, Client, Policy() void
+        -saveData() boolean
+        -loadData() void
+        -exit() void
+    }
+    class EntityTableModel~T~ {
+        -List~Column~T~~ columns
+        -List~T~ items
+        +setItems(List~T~ items) void
+        +getItem(int row) T
+        +getValueAt(int row, int col) Object
+    }
+    class Column~T~ {
+        <<record>>
+        String title
+        Class~?~ type
+        Function~T, Object~ value
+    }
+    class QueryPanel {
+        -JList~String~ queryList
+        -JTable resultTable
+        +select(int index) void
+        +refresh() void
+    }
+    class EntityDialog {
+        <<abstract>>
+        -boolean saved
+        #addField(String label, JComponent field) void
+        +showDialog() boolean
+        #save()* void
+        -onSave() void
+    }
+    class AgentDialog {
+        #save() void
+        +getResult() Agent
+    }
+    class ClientDialog {
+        #save() void
+        +getResult() Client
+    }
+    class PolicyDialog {
+        #save() void
+        +getResult() Policy
+    }
+    MainFrame "1" *-- "3" EntityTableModel~T~
+    EntityTableModel~T~ "1" *-- "1..*" Column~T~
+    MainFrame "1" *-- "1" QueryPanel
+    MainFrame ..> EntityDialog : «create»
+    EntityDialog <|-- AgentDialog
+    EntityDialog <|-- ClientDialog
+    EntityDialog <|-- PolicyDialog

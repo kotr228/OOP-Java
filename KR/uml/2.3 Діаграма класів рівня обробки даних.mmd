@@ -1,0 +1,38 @@
+classDiagram
+    direction LR
+    class InsuranceCompany {
+        -String name
+        -Registry~Agent~ agents
+        -Registry~Client~ clients
+        -Registry~Policy~ policies
+        +addAgent() / addClient() / addPolicy()
+        +updateAgent(id, name, phone, years) Agent
+        +updateClient(id, name, phone, birth, agentId) Client
+        +updatePolicy(id, type, period, event, cost, clientId) Policy
+        +removeAgent() / removeClient() / removePolicy()
+        -require(registry, id, what)$ T
+        -checkPhoneIsFree(phone, owner) void
+        +getClientList() List~Client~
+        +getPolicyCount() int
+        +getMostExpensivePolicy() Optional~Policy~
+        +getAverageCost() double
+        +getAgentWithMostClients() Optional~Agent~
+        +getMostPopularType() Optional~InsuranceType~
+    }
+    class Registry~T~ {
+        <<T extends Identifiable>>
+        -List~T~ items
+        -Map~Integer, T~ byId
+        +add(T item) void
+        +remove(int id) boolean
+        +findById(int id) Optional~T~
+        +findAll(Predicate condition) List~T~
+        +getAll() List~T~
+        +size() int
+    }
+    class ConsoleDemo {
+        +main(String[] args)$ void
+        -demoEditing(company)$ void
+    }
+    InsuranceCompany "1" *-- "3" Registry~T~
+    ConsoleDemo ..> InsuranceCompany : «use»

@@ -1,0 +1,39 @@
+classDiagram
+    direction LR
+    class Policy {
+        -int nextId$
+        +double MAX_COST$
+        -int id
+        -String policyNumber
+        -InsuranceType insuranceType
+        -InsurancePeriod period
+        -String insuredEvent
+        -double cost
+        -Client client
+        +Policy(type, period, event, cost, client)
+        -generateNumber(id, period)$ String
+        +setCost(double cost) void
+        +isActiveOn(LocalDate date) boolean
+        +getInfo() String
+        +toCsv() String
+    }
+    class InsurancePeriod {
+        -LocalDate startDate
+        -LocalDate endDate
+        +getDurationDays() long
+        +isActiveOn(LocalDate date) boolean
+    }
+    class InsuranceType {
+        <<enumeration>>
+        LIFE
+        HEALTH
+        AUTO
+        PROPERTY
+        TRAVEL
+        -String title
+        +getTitle() String
+    }
+    class Client
+    Policy *-- "1" InsurancePeriod
+    Policy "*" --> "1" InsuranceType
+    Policy "*" --> "1" Client
